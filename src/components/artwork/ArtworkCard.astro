@@ -1,0 +1,30 @@
+---
+import type { Artwork } from "../../lib/getArtworks";
+import Badge from "../ui/Badge.astro";
+
+interface Props {
+  artwork: Artwork;
+}
+
+const { artwork } = Astro.props;
+---
+
+<a href={`/artwork/${artwork.slug}`} class="artwork-card">
+  <div class="artwork-card__image-wrap">
+    <img
+      src={artwork.image}
+      alt={artwork.title}
+      loading="lazy"
+      decoding="async"
+    />
+    <div class="artwork-card__overlay"></div>
+  </div>
+
+  <div class="artwork-card__info">
+    <div class="artwork-card__title-row">
+      <h3 class="artwork-card__title">{artwork.title}</h3>
+      <Badge status={artwork.status} />
+    </div>
+    <p class="artwork-card__meta">{artwork.dimensions}</p>
+  </div>
+</a>

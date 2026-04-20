@@ -1,0 +1,19 @@
+---
+import BaseLayout from "../components/layout/BaseLayout.astro";
+---
+
+<BaseLayout title="Page not found — Ali Bachler" noindex={true}>
+  <section style="min-height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; text-align: center; padding: var(--section-v) var(--section-h);">
+    <p class="about__label">404</p>
+    <h1 style="font-family: var(--font-display); font-size: clamp(36px, 5vw, 56px); font-style: italic; font-weight: 300; letter-spacing: -0.02em; line-height: 1.1;">
+      Page not found
+    </h1>
+    <p style="font-size: 16px; font-weight: 300; color: var(--text-100); max-width: 360px; line-height: 1.7;">
+      The page you're looking for doesn't exist or has moved.
+    </p>
+    <div style="display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-top: 8px;">
+      <a href="/" class="btn btn--primary">Go home</a>
+      <a href="/artworks" class="btn btn--outline">Browse works</a>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,23 @@
+# Build output
+dist/
+.astro/
+
+# Dependencies
+node_modules/
+
+# Environment variables — never commit secrets
+.env
+.env.*
+!.env.example
+
+# Sanity Studio (separate project with its own node_modules)
+ali-portfolio/
+
+# Original high-res source photos — served from Sanity CDN, not needed in repo
+Ali Bachler artist Photos/
+
+# Claude internal session data
+.claude/
+
+# macOS
+*.DS_Store

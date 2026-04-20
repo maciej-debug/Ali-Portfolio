@@ -1,0 +1,18 @@
+---
+import type { ArtworkStatus } from "../../lib/getArtworkBySlug";
+import { STATUS_LABELS }      from "../../lib/getArtworkBySlug";
+
+interface Props {
+  status: ArtworkStatus;
+  size?: "default" | "large";
+}
+
+const { status, size = "default" } = Astro.props;
+
+const label = STATUS_LABELS[status];
+if (!label) return;
+---
+
+<span class:list={["badge", `badge--${status}`, size === "large" && "badge--large"]}>
+  {label}
+</span>

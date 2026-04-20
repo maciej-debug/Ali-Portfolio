@@ -1,0 +1,254 @@
+---
+import BaseLayout from "../components/layout/BaseLayout.astro";
+import ArtworkCard from "../components/artwork/ArtworkCard.astro";
+import Badge from "../components/ui/Badge.astro";
+import ExhibitionsSection from "../components/home/ExhibitionsSection.astro";
+import HeroCanvas from "../components/home/HeroCanvas.astro";
+import { getFeaturedArtworks } from "../lib/getFeaturedArtworks";
+import { getUpcomingExhibitions } from "../data/exhibitions";
+
+const featured    = await getFeaturedArtworks();
+const exhibitions = getUpcomingExhibitions();
+---
+
+<BaseLayout
+  title="Ali Bachler — Paintings on canvas"
+  description="Abstract paintings by Alexandra Bachler. Original works on canvas — available originals and commissions. Ericeira, Portugal."
+>
+
+  <!-- ── Hero ──────────────────────────────────────────────────────────────── -->
+  <section class="hero">
+    <HeroCanvas />
+    <div class="hero__content">
+      <h1 class="hero__title fade-up">Ali Bachler</h1>
+      <p class="hero__subtitle fade-up fade-up-delay-1">
+        Paintings on canvas — colour as healing, growth and transition.
+      </p>
+      <a href="#work" class="hero__cta fade-up fade-up-delay-2">
+        View work <span aria-hidden="true">↓</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ── Upcoming Exhibitions ─────────────────────────────────────────────── -->
+  {exhibitions.length > 0 && (
+    <ExhibitionsSection exhibitions={exhibitions} />
+  )}
+
+  <!-- ── Featured Works ───────────────────────────────────────────────────── -->
+  <section class="featured-works" id="work">
+    <div class="container" style="padding-inline: 0;">
+      <div class="section-header">
+        <h2 class="section-title">Selected Work</h2>
+      </div>
+      <div class="featured-works__grid">
+        {featured.map((artwork) => (
+          <ArtworkCard artwork={artwork} />
+        ))}
+      </div>
+      <div class="featured-works__footer">
+        <a href="/artworks" class="btn btn--outline">
+          View all works <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── About the Artist ─────────────────────────────────────────────────── -->
+  <section class="about" id="about">
+    <div class="about__inner">
+      <div class="about__image-wrap">
+        <!--
+          PLACEHOLDER: Replace with an actual artist portrait.
+          Recommended: square or portrait crop, warm natural light.
+        -->
+        <img
+          src="/images/artist/artist-ali.jpg"
+          alt="Ali Bachler"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+
+      <div class="about__content">
+        <p class="about__label">About the artist</p>
+
+        <h2 class="about__title">Alexandra Bachler</h2>
+
+        <div class="about__body">
+          <p>
+            Art was always there — it was simply part of how I moved through
+            the world. Then life intervened, the way it does. Critical voices,
+            practical pressures, the quiet convincing that making art wasn't a
+            real thing to do. For years, creativity found other channels —
+            brand work, yoga practice, guiding movement, organising retreats.
+            The body stayed in it even when the brush didn't.
+          </p>
+          <p>
+            Then came motherhood. And with it, an unexpected return — not
+            nostalgia, but necessity.
+          </p>
+          <p>
+            Born in Austria and now living in Ericeira, Portugal, I work in
+            acrylic ink and acrylic on canvas, building surfaces through
+            layering — adding oil pastel, palette knife, whatever the painting
+            asks for. My technique is inspired by the Taoist principle of
+            water: non-resistance, flow, the way things find their shape
+            without force. I don't plan my way to a finished painting. I feel
+            my way there.
+          </p>
+          <p>
+            Nature is my constant source. Bark after rain, mycelium, light
+            cycling through seasons, botanical dreamscapes somewhere between
+            observation and imagination. My practice is rooted in abstraction,
+            but always anchored to something real — an emotion, a memory, a
+            moment in nature. The work invites viewers into a sensory dialogue
+            with the natural world, where colour, texture, and gesture speak
+            before words do.
+          </p>
+          <p>
+            These paintings are made to live with. Not to be resolved at a
+            glance, but returned to.
+          </p>
+        </div>
+
+        <a href="/contact" class="btn btn--ghost">
+          Get in touch <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Commissions ──────────────────────────────────────────────────────── -->
+  <section class="commissions" id="commissions">
+    <div class="commissions__inner">
+      <p class="about__label">Commissions</p>
+      <p class="commissions__body">
+        Beyond my studio work, I'm exploring art-making as a healing process.
+        I create commissioned pieces that reflect individual or shared energy —
+        works co-created with clients where the process itself becomes
+        transformative. This practice can support mental health journeys,
+        relationship work, or moments of personal transition. If this
+        resonates, I'd love to hear from you.
+      </p>
+      <a
+        href="mailto:hi@alexandrabachler.at?subject=Commission%20enquiry&body=Hi%20Ali%2C%0A%0AI%27d%20love%20to%20explore%20a%20commission%20with%20you.%0A%0ABest%2C"
+        class="btn btn--ghost"
+      >
+        Start a conversation <span aria-hidden="true">→</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ── Newsletter ────────────────────────────────────────────────────────── -->
+  <section class="newsletter" id="newsletter">
+    <div class="newsletter__inner">
+      <h2 class="newsletter__title">Stay in the loop</h2>
+      <p class="newsletter__body">
+        In case you want to hear about the next exhibitions, new work, and
+        moments from the studio — sign up to the newsletter.
+      </p>
+
+      <!--
+        TODO: Connect to a newsletter provider.
+        Recommended: Mailchimp, ConvertKit, or Buttondown.
+        Replace the form action URL with your provider's endpoint.
+      -->
+      <form
+        class="newsletter__form"
+        id="newsletter-form"
+        action="#"
+        method="post"
+        novalidate
+      >
+        <input
+          type="email"
+          name="email"
+          class="newsletter__input"
+          placeholder="Your email address"
+          required
+          autocomplete="email"
+          aria-label="Email address"
+        />
+        <button type="submit" class="newsletter__btn">Subscribe</button>
+      </form>
+
+      <p class="newsletter__note" id="newsletter-status" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <!-- ── Instagram ─────────────────────────────────────────────────────────── -->
+  <section class="instagram">
+    <div class="instagram__inner">
+      <!-- Instagram icon (inline SVG) -->
+      <svg class="instagram__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+        <circle cx="12" cy="12" r="4"></circle>
+        <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none"></circle>
+      </svg>
+
+      <h2 class="instagram__title">Follow the process</h2>
+
+      <p class="instagram__body">
+        Glimpses from the studio, works in progress, and colour studies —
+        follow along on Instagram.
+      </p>
+
+      <a
+        href="https://instagram.com/coloursofali"
+        class="instagram__link"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <span>@coloursofali</span>
+        <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ── Inquiry CTA ───────────────────────────────────────────────────────── -->
+  <section
+    class="inquiry-section"
+    id="contact"
+    style="background-color: var(--bg);"
+  >
+    <div class="inquiry-section__inner">
+      <div class="inquiry-section__header">
+        <p class="about__label">Enquiries</p>
+        <h2 class="inquiry-section__title">Interested in a work?</h2>
+        <p class="inquiry-section__body">
+          To enquire about a specific piece, request pricing, or discuss
+          shipping — reach out directly. All original works are available for
+          purchase unless marked otherwise.
+        </p>
+      </div>
+      <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+        <a href="/contact" class="btn btn--primary">
+          Send an enquiry <span aria-hidden="true">→</span>
+        </a>
+        <a href="/artworks" class="btn btn--outline">Browse all works</a>
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>
+
+<script>
+  // Newsletter form (placeholder handler — connect to your provider)
+  const form   = document.getElementById("newsletter-form") as HTMLFormElement | null;
+  const status = document.getElementById("newsletter-status") as HTMLElement | null;
+
+  form?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const email = (form.querySelector('input[name="email"]') as HTMLInputElement)?.value;
+    if (!email) return;
+
+    // TODO: Replace with real API call to your newsletter provider.
+    // Example for Mailchimp, ConvertKit, Buttondown, etc.
+    if (status) {
+      status.textContent = "Thank you — you're on the list.";
+      status.style.color = "var(--sage)";
+    }
+    form.reset();
+  });
+</script>

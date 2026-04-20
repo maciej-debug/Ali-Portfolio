@@ -1,0 +1,191 @@
+---
+import BaseLayout from "../../components/layout/BaseLayout.astro";
+import ArtworkCard from "../../components/artwork/ArtworkCard.astro";
+import Badge from "../../components/ui/Badge.astro";
+import { getArtworks, getArtworkSeries } from "../../lib/getArtworks";
+import type { Artwork } from "../../lib/getArtworks";
+
+const artworks  = await getArtworks();
+const allSeries = await getArtworkSeries();
+
+// Group artworks by series
+const groups: Record<string, Artwork[]> = {};
+for (const artwork of artworks) {
+  const key = artwork.series || "Other";
+  if (!groups[key]) groups[key] = [];
+  groups[key].push(artwork);
+}
+
+// Available works first
+const seriesOrder = allSeries.filter(
+  (s) => groups[s]?.some((a) => a.status === "available")
+).concat(
+  allSeries.filter(
+    (s) => !groups[s]?.some((a) => a.status === "available")
+  )
+);
+---
+
+<BaseLayout
+  title="Works — Ali Bachler"
+  description="Browse original abstract paintings by Alexandra Bachler. Oil on canvas, available for purchase. Ericeira, Portugal."
+>
+
+  <!-- ── Page Header ────────────────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div class="page-header__inner">
+      <p class="about__label">Original paintings</p>
+      <h1 class="page-header__title">Works</h1>
+      <p class="page-header__subtitle">
+        Oil on canvas — available originals and commissions
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Filter Bar ─────────────────────────────────────────────────────────── -->
+  <div class="filter-bar">
+    <div class="container">
+      <div class="filter-bar__inner">
+        <button class="filter-btn is-active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="available">Available</button>
+        <button class="filter-btn" data-filter="sold">Sold</button>
+        {allSeries.map((series) => (
+          <button class="filter-btn" data-filter={series}>{series}</button>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Artwork Groups ─────────────────────────────────────────────────────── -->
+  <section class="artworks-section">
+    <div class="artworks-section__inner">
+      {seriesOrder.map((series) => {
+        const works = groups[series];
+        if (!works?.length) return null;
+        const hasAvailable = works.some((a) => a.status === "available");
+        return (
+          <div class="artworks-group" data-series={series}>
+            <div class="artworks-group__header">
+              <h2 class="artworks-group__title">{series}</h2>
+              {!hasAvailable && (
+                <span class="badge badge--sold">All pieces sold</span>
+              )}
+            </div>
+            <div class="artwork-grid">
+              {works.map((artwork) => (
+                <div
+                  class="artwork-grid-item"
+                  data-status={artwork.status}
+                  data-series={artwork.series}
+                >
+                  <ArtworkCard artwork={artwork} />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </section>
+
+  <!-- ── Commission CTA ─────────────────────────────────────────────────────── -->
+  <section class="commissions" style="background-color: var(--bg); border-top: 1px solid var(--border);">
+    <div class="commissions__inner">
+      <p class="about__label">Something specific in mind?</p>
+      <p class="commissions__body">
+        I take on a limited number of commissions each year — pieces created
+        with your space, your story, and your energy in mind. Reach out to
+        start a conversation.
+      </p>
+      <a href="/contact" class="btn btn--ghost">
+        Enquire about a commission <span aria-hidden="true">→</span>
+      </a>
+    </div>
+  </section>
+
+</BaseLayout>
+
+<style>
+  .filter-bar {
+    padding: 20px var(--section-h);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: var(--nav-height);
+    background: var(--bg);
+    z-index: 50;
+  }
+
+  .filter-bar__inner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    max-width: var(--max-width);
+    margin-inline: auto;
+  }
+
+  .filter-btn {
+    padding: 5px 14px;
+    border-radius: 100px;
+    border: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-200);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .filter-btn:hover,
+  .filter-btn.is-active {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+  }
+
+  /* Hidden items during filtering */
+  .artwork-grid-item.is-hidden {
+    display: none;
+  }
+
+  .artworks-group.is-hidden {
+    display: none;
+  }
+</style>
+
+<script>
+  const filterBtns = document.querySelectorAll<HTMLButtonElement>(".filter-btn");
+  const gridItems  = document.querySelectorAll<HTMLElement>(".artwork-grid-item");
+  const groups     = document.querySelectorAll<HTMLElement>(".artworks-group");
+
+  function applyFilter(filter: string) {
+    filterBtns.forEach((btn) => {
+      btn.classList.toggle("is-active", btn.dataset.filter === filter);
+    });
+
+    gridItems.forEach((item) => {
+      const status = item.dataset.status ?? "";
+      const series = item.dataset.series ?? "";
+      const show =
+        filter === "all" ||
+        filter === status ||
+        filter === series;
+      item.classList.toggle("is-hidden", !show);
+    });
+
+    // Hide empty groups
+    groups.forEach((group) => {
+      const visible = group.querySelectorAll(".artwork-grid-item:not(.is-hidden)");
+      group.classList.toggle("is-hidden", visible.length === 0);
+    });
+  }
+
+  filterBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      applyFilter(btn.dataset.filter ?? "all");
+    });
+  });
+</script>

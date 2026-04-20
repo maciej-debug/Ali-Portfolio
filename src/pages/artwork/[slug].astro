@@ -1,0 +1,253 @@
+---
+import BaseLayout from "../../components/layout/BaseLayout.astro";
+import ArtworkZoom from "../../components/artwork/ArtworkZoom.astro";
+import ArtworkCard from "../../components/artwork/ArtworkCard.astro";
+import Badge from "../../components/ui/Badge.astro";
+import {
+  getArtworkBySlug,
+  getAdjacentArtworks,
+  formatPrice,
+  STATUS_LABELS,
+} from "../../lib/getArtworkBySlug";
+import { getArtworks }         from "../../lib/getArtworks";
+import { getRelatedArtworks }  from "../../lib/getRelatedArtworks";
+
+export async function getStaticPaths() {
+  const artworks = await getArtworks();
+  return artworks.map((artwork) => ({
+    params: { slug: artwork.slug },
+  }));
+}
+
+const { slug } = Astro.params;
+const artwork = await getArtworkBySlug(slug!);
+
+if (!artwork) {
+  return Astro.redirect("/artworks");
+}
+
+const { prev, next } = await getAdjacentArtworks(slug!);
+const price           = formatPrice(artwork);
+const isAvailable     = artwork.status === "available";
+const relatedWorks    = await getRelatedArtworks(artwork, 3);
+---
+
+<BaseLayout
+  title={artwork.seoTitle ?? `${artwork.title} — Ali Bachler`}
+  description={artwork.seoDescription ?? artwork.description}
+  image={artwork.image}
+>
+
+  <!-- ── Breadcrumb / Back ──────────────────────────────────────────────────── -->
+  <div style="padding: 24px var(--section-h) 0; max-width: calc(var(--max-width) + 2 * var(--section-h)); margin-inline: auto;">
+    <a href="/artworks" class="artwork-detail__back">
+      <span aria-hidden="true">←</span> All works
+    </a>
+  </div>
+
+  <!-- ── Detail Layout ──────────────────────────────────────────────────────── -->
+  <div class="artwork-detail">
+    <div class="artwork-detail__inner">
+
+      <!-- LEFT: Zoom image -->
+      <div>
+        <ArtworkZoom artwork={artwork} />
+
+        <!-- Gallery thumbnails (if additional images exist) -->
+        {artwork.gallery.length > 0 && (
+          <div class="artwork-gallery" id="gallery">
+            {artwork.gallery.map((img, i) => (
+              <button
+                class={`artwork-gallery__thumb${i === 0 ? " is-active" : ""}`}
+                data-src={img}
+                aria-label={`View image ${i + 2}`}
+              >
+                <img src={img} alt={`${artwork.title} — detail ${i + 2}`} loading="lazy" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <!-- RIGHT: Info sidebar -->
+      <div class="artwork-detail__sidebar">
+
+        <!-- Title + status -->
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <Badge status={artwork.status} size="large" />
+          <h1 class="artwork-detail__title">{artwork.title}</h1>
+        </div>
+
+        <!-- Specs -->
+        <dl class="artwork-detail__specs">
+          {artwork.year && (
+            <div class="artwork-detail__spec">
+              <dt class="artwork-detail__spec-label">Year</dt>
+              <dd class="artwork-detail__spec-value">{artwork.year}</dd>
+            </div>
+          )}
+          <div class="artwork-detail__spec">
+            <dt class="artwork-detail__spec-label">Medium</dt>
+            <dd class="artwork-detail__spec-value">{artwork.medium}</dd>
+          </div>
+          <div class="artwork-detail__spec">
+            <dt class="artwork-detail__spec-label">Dimensions</dt>
+            <dd class="artwork-detail__spec-value">{artwork.dimensions}</dd>
+          </div>
+          {artwork.series && (
+            <div class="artwork-detail__spec">
+              <dt class="artwork-detail__spec-label">Series</dt>
+              <dd class="artwork-detail__spec-value">{artwork.series}</dd>
+            </div>
+          )}
+        </dl>
+
+        <!-- Description -->
+        <p class="artwork-detail__description">{artwork.description}</p>
+
+        <!-- Price -->
+        {price && (
+          <p class="artwork-detail__price">{price}</p>
+        )}
+
+        <!-- Actions -->
+        <div class="artwork-detail__actions">
+          {isAvailable ? (
+            <>
+              <a
+                href={`/contact?artwork=${encodeURIComponent(artwork.title)}`}
+                class="btn btn--primary"
+              >
+                Enquire to purchase <span aria-hidden="true">→</span>
+              </a>
+              <a
+                href={`mailto:hi@alexandrabachler.at?subject=Enquiry%3A%20${encodeURIComponent(artwork.title)}&body=Hi%20Ali%2C%0A%0AI%27m%20interested%20in%20%22${encodeURIComponent(artwork.title)}%22%20(${encodeURIComponent(artwork.dimensions)}).%0A%0ACould%20you%20please%20share%20more%20details%20and%20availability%3F%0A%0ABest%2C`}
+                class="btn btn--outline"
+              >
+                Email directly
+              </a>
+            </>
+          ) : (
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <p style="font-size: 14px; color: var(--text-200); line-height: 1.6;">
+                This work is {STATUS_LABELS[artwork.status].toLowerCase()}.
+                {artwork.status === "sold" && " Interested in something similar?"}
+              </p>
+              <a
+                href={`/contact?artwork=${encodeURIComponent(artwork.title)}&type=commission`}
+                class="btn btn--outline"
+              >
+                Commission something similar <span aria-hidden="true">→</span>
+              </a>
+            </div>
+          )}
+        </div>
+
+        <!-- Prev / Next navigation -->
+        <nav class="artwork-detail__nav" aria-label="Navigate artworks">
+          {prev ? (
+            <a href={`/artwork/${prev.slug}`} class="artwork-detail__nav-link">
+              <span class="artwork-detail__nav-label">← Previous</span>
+              <span class="artwork-detail__nav-title">{prev.title}</span>
+            </a>
+          ) : <span />}
+
+          {next ? (
+            <a href={`/artwork/${next.slug}`} class="artwork-detail__nav-link artwork-detail__nav-link--next">
+              <span class="artwork-detail__nav-label">Next →</span>
+              <span class="artwork-detail__nav-title">{next.title}</span>
+            </a>
+          ) : <span />}
+        </nav>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Related Works ──────────────────────────────────────────────────────── -->
+  {relatedWorks.length > 0 && (
+    <section
+      style="padding: var(--section-v) var(--section-h); background-color: var(--bg-100); border-top: 1px solid var(--border);"
+    >
+      <div style="max-width: var(--max-width); margin-inline: auto;">
+        <div class="section-header">
+          <h2 class="section-title">From the same series</h2>
+        </div>
+        <div class="artwork-grid">
+          {relatedWorks.map((related) => (
+            <ArtworkCard artwork={related} />
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- ── Inquiry CTA (bottom) ──────────────────────────────────────────────── -->
+  <section class="inquiry-section">
+    <div class="inquiry-section__inner">
+      <div class="inquiry-section__header">
+        <p class="about__label">Interested in this work?</p>
+        <h2 class="inquiry-section__title">Let's talk</h2>
+        <p class="inquiry-section__body">
+          Send a message with any questions about availability, dimensions,
+          shipping, or to arrange a viewing.
+        </p>
+      </div>
+      <a
+        href={`/contact?artwork=${encodeURIComponent(artwork.title)}`}
+        class="btn btn--primary"
+      >
+        Send an enquiry <span aria-hidden="true">→</span>
+      </a>
+    </div>
+  </section>
+
+</BaseLayout>
+
+<style>
+  .artwork-gallery {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+
+  .artwork-gallery__thumb {
+    width: 72px;
+    height: 72px;
+    overflow: hidden;
+    border-radius: 2px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    padding: 0;
+    background: none;
+    transition: border-color 0.2s ease;
+  }
+
+  .artwork-gallery__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .artwork-gallery__thumb.is-active,
+  .artwork-gallery__thumb:hover {
+    border-color: var(--text);
+  }
+</style>
+
+<script>
+  // Gallery thumbnail switching
+  const thumbs   = document.querySelectorAll<HTMLButtonElement>(".artwork-gallery__thumb");
+  const zoomImg  = document.getElementById("zoom-image") as HTMLImageElement | null;
+
+  thumbs.forEach((thumb) => {
+    thumb.addEventListener("click", () => {
+      const src = thumb.dataset.src;
+      if (!src || !zoomImg) return;
+      zoomImg.src = src;
+      thumbs.forEach((t) => t.classList.remove("is-active"));
+      thumb.classList.add("is-active");
+    });
+  });
+</script>

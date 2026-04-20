@@ -1,0 +1,130 @@
+---
+import type { Artwork } from "../../lib/getArtworks";
+
+interface Props {
+  artwork: Artwork;
+}
+
+const { artwork } = Astro.props;
+---
+
+<div class="artwork-zoom">
+  <div class="artwork-zoom__container" id="zoom-container" aria-label="Artwork image — hover to zoom">
+    <img
+      id="zoom-image"
+      class="artwork-zoom__image"
+      src={artwork.image}
+      alt={artwork.title}
+      loading="eager"
+      decoding="async"
+    />
+    <!-- Custom circular cursor shown when zoomed -->
+    <div class="artwork-zoom__cursor" id="zoom-cursor" aria-hidden="true"></div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const container = document.getElementById("zoom-container") as HTMLElement | null;
+    const image     = document.getElementById("zoom-image")     as HTMLImageElement | null;
+    const cursor    = document.getElementById("zoom-cursor")    as HTMLElement | null;
+
+    if (!container || !image || !cursor) return;
+
+    const SCALE = 2.2;
+    let isZoomed = false;
+
+    // ── Desktop: cursor-follow zoom ──────────────────────────────────────────
+
+    function setZoom(clientX: number, clientY: number) {
+      const rect = container!.getBoundingClientRect();
+      const x = Math.max(0, Math.min(1, (clientX - rect.left)  / rect.width));
+      const y = Math.max(0, Math.min(1, (clientY - rect.top)   / rect.height));
+
+      image!.style.transformOrigin = `${x * 100}% ${y * 100}%`;
+      image!.style.transform = `scale(${SCALE})`;
+
+      // Position the custom cursor
+      cursor!.style.left = `${(clientX - rect.left)}px`;
+      cursor!.style.top  = `${(clientY - rect.top)}px`;
+    }
+
+    container.addEventListener("mouseenter", () => {
+      isZoomed = true;
+      container.classList.add("is-zoomed");
+    });
+
+    container.addEventListener("mousemove", (e: MouseEvent) => {
+      setZoom(e.clientX, e.clientY);
+    });
+
+    container.addEventListener("mouseleave", () => {
+      isZoomed = false;
+      container.classList.remove("is-zoomed");
+      image!.style.transform = "scale(1)";
+      image!.style.transformOrigin = "center center";
+    });
+
+    // ── Mobile: tap-to-fullscreen lightbox ───────────────────────────────────
+
+    const isTouchDevice = () =>
+      window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+
+    if (isTouchDevice()) {
+      container.style.cursor = "zoom-in";
+
+      container.addEventListener("click", () => {
+        openLightbox(image!.src, image!.alt);
+      });
+    }
+
+    // ── Lightbox (mobile) ────────────────────────────────────────────────────
+
+    function openLightbox(src: string, alt: string) {
+      const lb = document.createElement("div");
+      lb.style.cssText = `
+        position: fixed; inset: 0; z-index: 9999;
+        background: rgba(20,14,10,0.96);
+        display: flex; align-items: center; justify-content: center;
+        padding: 20px;
+        animation: fadeIn 0.2s ease;
+      `;
+
+      const img = document.createElement("img");
+      img.src = src;
+      img.alt = alt;
+      img.style.cssText = `
+        max-width: 100%; max-height: 90vh;
+        object-fit: contain;
+        border-radius: 2px;
+      `;
+
+      const close = document.createElement("button");
+      close.innerHTML = "✕";
+      close.setAttribute("aria-label", "Close");
+      close.style.cssText = `
+        position: fixed; top: 16px; right: 20px;
+        background: none; border: none; color: rgba(255,255,255,0.7);
+        font-size: 22px; cursor: pointer; padding: 8px; line-height: 1;
+      `;
+
+      lb.appendChild(img);
+      lb.appendChild(close);
+      document.body.appendChild(lb);
+      document.body.style.overflow = "hidden";
+
+      const closeLb = () => {
+        lb.remove();
+        document.body.style.overflow = "";
+      };
+
+      close.addEventListener("click", closeLb);
+      lb.addEventListener("click", (e) => {
+        if (e.target === lb) closeLb();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeLb();
+      }, { once: true });
+    }
+  })();
+</script>
