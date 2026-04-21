@@ -157,10 +157,11 @@ const exhibitions = getUpcomingExhibitions();
       <form
         class="newsletter__form"
         id="newsletter-form"
-        action="#"
-        method="post"
         novalidate
       >
+        <input type="hidden" name="access_key" value="db38074e-e4fd-467c-aa55-e31aa77b869f" />
+        <input type="hidden" name="subject" value="New newsletter subscriber — alexandrabachler.at" />
+        <input type="hidden" name="from_name" value="Ali Bachler Newsletter" />
         <input
           type="email"
           name="email"
@@ -234,21 +235,38 @@ const exhibitions = getUpcomingExhibitions();
 </BaseLayout>
 
 <script>
-  // Newsletter form (placeholder handler — connect to your provider)
   const form   = document.getElementById("newsletter-form") as HTMLFormElement | null;
   const status = document.getElementById("newsletter-status") as HTMLElement | null;
+  const btn    = form?.querySelector("button") as HTMLButtonElement | null;
 
-  form?.addEventListener("submit", (e) => {
+  form?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const email = (form.querySelector('input[name="email"]') as HTMLInputElement)?.value;
+    const email = (form.querySelector('input[name="email"]') as HTMLInputElement)?.value.trim();
     if (!email) return;
 
-    // TODO: Replace with real API call to your newsletter provider.
-    // Example for Mailchimp, ConvertKit, Buttondown, etc.
-    if (status) {
-      status.textContent = "Thank you — you're on the list.";
-      status.style.color = "var(--sage)";
+    if (btn) { btn.textContent = "Subscribing…"; btn.disabled = true; }
+
+    try {
+      const res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(Object.fromEntries(new FormData(form))),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error();
+
+      if (status) {
+        status.textContent = "You're on the list — thank you.";
+        status.style.color = "var(--sage)";
+      }
+      form.reset();
+    } catch {
+      if (status) {
+        status.textContent = "Something went wrong. Please try again.";
+        status.style.color = "var(--accent)";
+      }
+    } finally {
+      if (btn) { btn.textContent = "Subscribe"; btn.disabled = false; }
     }
-    form.reset();
   });
 </script>
