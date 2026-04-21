@@ -65,8 +65,8 @@ import BaseLayout from "../components/layout/BaseLayout.astro";
             novalidate
           >
             <input type="hidden" name="access_key" value="db38074e-e4fd-467c-aa55-e31aa77b869f" />
-            <input type="hidden" name="subject" value="New enquiry — alexandrabachler.at" />
             <input type="hidden" name="from_name" value="Ali Bachler Website" />
+            <input type="hidden" name="redirect" value="false" />
             <div class="form-row">
               <div class="form-field">
                 <label for="contact-name" class="form-label">Name *</label>
@@ -107,10 +107,10 @@ import BaseLayout from "../components/layout/BaseLayout.astro";
 
             <div class="form-field">
               <label for="contact-subject" class="form-label">Subject</label>
-              <select id="contact-subject" name="subject" class="form-select form-input">
-                <option value="artwork-enquiry">Artwork enquiry</option>
-                <option value="commission">Commission enquiry</option>
-                <option value="other">Other</option>
+              <select id="contact-subject" name="enquiry_type" class="form-select form-input">
+                <option value="Artwork enquiry">Artwork enquiry</option>
+                <option value="Commission enquiry">Commission enquiry</option>
+                <option value="Other">Other</option>
               </select>
             </div>
 
@@ -285,12 +285,18 @@ import BaseLayout from "../components/layout/BaseLayout.astro";
 
     try {
       const data = Object.fromEntries(new FormData(form));
+      const enquiryType = (form.querySelector("#contact-subject") as HTMLSelectElement)?.value ?? "Enquiry";
+      const artwork = (form.querySelector("#contact-artwork") as HTMLInputElement)?.value.trim();
+      const subjectLine = artwork
+        ? `${enquiryType}: ${artwork}`
+        : enquiryType;
 
       const res = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
         body: JSON.stringify({
           access_key: "db38074e-e4fd-467c-aa55-e31aa77b869f",
+          subject: subjectLine,
           ...data,
         }),
       });
