@@ -64,6 +64,9 @@ import BaseLayout from "../components/layout/BaseLayout.astro";
             id="contact-form"
             novalidate
           >
+            <input type="hidden" name="access_key" value="db38074e-e4fd-467c-aa55-e31aa77b869f" />
+            <input type="hidden" name="subject" value="New enquiry — alexandrabachler.at" />
+            <input type="hidden" name="from_name" value="Ali Bachler Website" />
             <div class="form-row">
               <div class="form-field">
                 <label for="contact-name" class="form-label">Name *</label>
@@ -281,33 +284,19 @@ import BaseLayout from "../components/layout/BaseLayout.astro";
     submitBtn.disabled = true;
 
     try {
-      /**
-       * TODO: Replace with a real form backend.
-       *
-       * Option 1 — Formspree (free tier):
-       *   const res = await fetch("https://formspree.io/f/YOUR_FORM_ID", {
-       *     method: "POST",
-       *     headers: { "Content-Type": "application/json", "Accept": "application/json" },
-       *     body: JSON.stringify(Object.fromEntries(new FormData(form))),
-       *   });
-       *
-       * Option 2 — Netlify Forms:
-       *   Add `data-netlify="true"` to the <form> element, deploy to Netlify.
-       *
-       * Option 3 — Cloudflare Worker:
-       *   POST to your Worker endpoint that calls a mail service (Resend, Sendgrid).
-       *
-       * For now, we simulate a successful send after a short delay.
-       */
-      await new Promise((r) => setTimeout(r, 600));
+      const data = Object.fromEntries(new FormData(form));
 
-      // Simulate mailto fallback
-      const artwork = (form.querySelector("#contact-artwork") as HTMLInputElement)?.value;
-      const subject = artwork
-        ? `Enquiry: ${artwork}`
-        : (form.querySelector("#contact-subject") as HTMLSelectElement)?.value ?? "Enquiry";
-      const body = `Name: ${name}\nEmail: ${email}\n\n${message}`;
-      window.location.href = `mailto:hi@alexandrabachler.at?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      const res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({
+          access_key: "db38074e-e4fd-467c-aa55-e31aa77b869f",
+          ...data,
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.message || "Submission failed");
 
       // Show success
       if (wrapper) wrapper.style.display = "none";
