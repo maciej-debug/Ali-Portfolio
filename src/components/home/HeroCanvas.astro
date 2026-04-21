@@ -51,9 +51,11 @@
   const dpr = Math.min(2, window.devicePixelRatio || 1);
 
   function resize() {
-    const r = hero.getBoundingClientRect();
-    W = r.width;
-    H = r.height;
+    // Use offsetWidth/offsetHeight — these reflect the fully-laid-out size
+    // including min-height, which getBoundingClientRect may miss on first paint
+    W = hero.offsetWidth;
+    H = hero.offsetHeight;
+    if (W === 0 || H === 0) return;
     cv.width  = W * dpr;
     cv.height = H * dpr;
     cv.style.width  = W + 'px';
@@ -62,6 +64,10 @@
     ctx.fillStyle = PAL.bg;
     ctx.fillRect(0, 0, W, H);
   }
+
+  // ResizeObserver fires once layout is stable, catching mobile svh resolution
+  const ro = new ResizeObserver(() => resize());
+  ro.observe(hero);
 
   /* ── Helpers ──────────────────────────────────────────── */
   function hexA(hex, a) {
@@ -161,8 +167,7 @@
   window.addEventListener('scroll',    () => { purge.active = 1; }, { passive: true, signal: ac.signal });
   window.addEventListener('touchmove', () => { purge.active = 1; }, { passive: true, signal: ac.signal });
 
-  // Resize
-  window.addEventListener('resize', resize, sig);
+  // window resize is handled by ResizeObserver above
 
   /* ── Animation loop ───────────────────────────────────── */
   let rafId = null;
@@ -220,13 +225,13 @@
   }
 
   /* ── Start ────────────────────────────────────────────── */
-  resize();
   seed();
   rafId = requestAnimationFrame(frame);
 
   /* ── Cleanup (Astro view transitions / page unload) ───── */
   function cleanup() {
     ac.abort();
+    ro.disconnect();
     if (rafId !== null) cancelAnimationFrame(rafId);
   }
 
