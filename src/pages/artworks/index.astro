@@ -113,6 +113,13 @@ const seriesOrder = allSeries.filter(
     top: var(--nav-height);
     background: var(--bg);
     z-index: 50;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+
+  .filter-bar.is-hidden-scroll {
+    transform: translateY(-110%);
+    opacity: 0;
+    pointer-events: none;
   }
 
   .filter-bar__inner {
@@ -144,6 +151,32 @@ const seriesOrder = allSeries.filter(
     background: var(--text);
     color: var(--bg);
     border-color: var(--text);
+  }
+
+  /* ── Mobile: single scrollable row ─────────────────────── */
+  @media (max-width: 640px) {
+    .filter-bar {
+      padding: 14px 0;
+    }
+
+    .filter-bar__inner {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding-inline: var(--section-h);
+      gap: 8px;
+    }
+
+    .filter-bar__inner::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-btn {
+      scroll-snap-align: start;
+      flex-shrink: 0;
+    }
   }
 
   /* Hidden items during filtering */
@@ -188,4 +221,25 @@ const seriesOrder = allSeries.filter(
       applyFilter(btn.dataset.filter ?? "all");
     });
   });
+
+  // ── Collapse filter bar on scroll down (mobile only) ──
+  const filterBar = document.querySelector<HTMLElement>(".filter-bar");
+  let lastScrollY = window.scrollY;
+  let ticking = false;
+
+  window.addEventListener("scroll", () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      if (window.innerWidth <= 640) {
+        const currentY = window.scrollY;
+        const scrolledDown = currentY > lastScrollY && currentY > 80;
+        filterBar?.classList.toggle("is-hidden-scroll", scrolledDown);
+        lastScrollY = currentY;
+      } else {
+        filterBar?.classList.remove("is-hidden-scroll");
+      }
+      ticking = false;
+    });
+  }, { passive: true });
 </script>
